@@ -160,7 +160,7 @@ async def user_channel_time(ctx, member: discord.Member, channel: discord.VoiceC
         db.close()
 
 @bot.command()
-async def transmit(channel_id: int, message: str):
-    await bot.get_channel(channel_id).send(message)
+async def transmit(ctx, channel_id: int, *message: str):
+    await bot.get_channel(channel_id).send(" ".join(message))
 
 bot.run(os.getenv("DISCORD_TOKEN"))
