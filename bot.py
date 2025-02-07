@@ -137,7 +137,6 @@ async def top_users(ctx, channel: discord.VoiceChannel):
     finally:
         db.close()
 
-
 @bot.command(name="TempoGasto")
 async def user_channel_time(ctx, member: discord.Member, channel: discord.VoiceChannel):
     db = SessionLocal()
@@ -159,5 +158,9 @@ async def user_channel_time(ctx, member: discord.Member, channel: discord.VoiceC
         await ctx.send(f"Error: {str(e)}")
     finally:
         db.close()
+
+@bot.command()
+async def transmit(channel_id: int, message: str):
+    await bot.get_channel(channel_id).send(message)
 
 bot.run(os.getenv("DISCORD_TOKEN"))
