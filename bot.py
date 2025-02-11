@@ -180,5 +180,10 @@ async def reset_chat(ctx):
     gem.reset_chat()
     await ctx.send("Chat resetado")
 
+@bot.command()
+async def agressividade(ctx):
+    gem.agressividade()
+    await ctx.send("Resetado o chat no modo agressivo")
+
 
 bot.run(os.getenv("DISCORD_TOKEN"))
