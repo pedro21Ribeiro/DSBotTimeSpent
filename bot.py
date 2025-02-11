@@ -5,6 +5,7 @@ from models import UserActivity
 from datetime import datetime
 from dotenv import load_dotenv
 import os
+from geminy import Geminy
 
 load_dotenv()
 
@@ -23,6 +24,7 @@ bot = commands.Bot(command_prefix='!', description=description, intents=intents)
 
 EntSai = {}
 
+gem = Geminy()
 
 
 @bot.event
@@ -30,13 +32,25 @@ async def on_ready():
     print(f"Logado como {bot.user} (id: {bot.user.id})")
     print('---------------------')
 
+#Isso tem que ficar por ultímo para não barrar os comandos
+@bot.event
+async def on_message(message: discord.Message):
+    if(not message.content.startswith("!") and message.author != bot.user):
+        if(bot.user.mentioned_in(message)):
+            chat = gem.get_chat()
+            response = chat.send_message(message.content.replace('<@1243667645576773662>', ''))
+            await message.channel.send(response.text)
+
+    await bot.process_commands(message)
+
 @bot.event
 async def  on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
     if before.channel != None:
+        if (not str(member.id) in EntSai):
+            return
         hours = datetime.now().hour + datetime.now().minute / 60
         tempoDeCall = hours - EntSai[str(member.id)]
-        print(f"{member.name} ficou na call {before.channel.name} por {tempoDeCall} horas")
-        if(tempoDeCall >= 0.5):
+        if(tempoDeCall >= 0.0):
             db = SessionLocal()
             try:
                 existing_entry = db.query(UserActivity).filter(
@@ -60,10 +74,8 @@ async def  on_voice_state_update(member: discord.Member, before: discord.VoiceSt
                 await bot.get_channel(879856877209530462).send(f"Houe um erro: {str(e)}")
             finally:
                 db.close()
-            pass #lógica para adicionar esse tempo ao tempo já no SQL
     
     if after.channel != None:
-        print(f"Usuario {member.name} entrou na call {after.channel.name} as {datetime.now()}")
         hours = datetime.now().hour + datetime.now().minute / 60
         EntSai[str(member.id)] = hours 
 
@@ -162,5 +174,11 @@ async def user_channel_time(ctx, member: discord.Member, channel: discord.VoiceC
 @bot.command()
 async def transmit(ctx, channel_id: int, *message: str):
     await bot.get_channel(channel_id).send(" ".join(message))
+
+@bot.command()
+async def reset_chat(ctx):
+    gem.reset_chat()
+    await ctx.send("Chat resetado")
+
 
 bot.run(os.getenv("DISCORD_TOKEN"))
